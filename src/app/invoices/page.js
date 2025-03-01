@@ -17,22 +17,22 @@ export default function InvoicesPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const fetchInvoices = async () => {
-      try {
-        setIsLoading(true);
-        const response = await invoicesApi.getInvoices();
-        setInvoices(response.data);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching invoices:', err);
-        setError('Failed to load invoices. Please try again later.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchInvoices();
   }, []);
+
+  const fetchInvoices = async () => {
+    try {
+      setIsLoading(true);
+      const response = await invoicesApi.getInvoices();
+      setInvoices(response.data || []);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching invoices:', err);
+      setError('Failed to load invoices. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleDeleteClick = (invoice) => {
     setSelectedInvoice(invoice);
@@ -75,6 +75,19 @@ export default function InvoicesPage() {
     }
   };
 
+  // Function to check if invoice is payable (not draft, not fully paid)
+  const isInvoicePayable = (invoice) => {
+    return invoice.status && 
+           invoice.status.toLowerCase() !== 'draft' && 
+           invoice.status.toLowerCase() !== 'paid' &&
+           parseFloat(invoice.balance || 0) > 0;
+  };
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    return parseFloat(amount || 0).toFixed(2);
+  };
+
   return (
     <DashboardLayout>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -113,20 +126,7 @@ export default function InvoicesPage() {
               <Button 
                 variant="secondary" 
                 size="sm"
-                onClick={() => {
-                  setError(null);
-                  setIsLoading(true);
-                  invoicesApi.getInvoices()
-                    .then(response => {
-                      setInvoices(response.data);
-                      setIsLoading(false);
-                    })
-                    .catch(err => {
-                      console.error('Error fetching invoices:', err);
-                      setError('Failed to load invoices. Please try again later.');
-                      setIsLoading(false);
-                    });
-                }}
+                onClick={fetchInvoices}
               >
                 Try Again
               </Button>
@@ -204,8 +204,13 @@ export default function InvoicesPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900 dark:text-white">
-                          ${parseFloat(invoice.amount).toFixed(2)}
+                          ${formatCurrency(invoice.amount)}
                         </div>
+                        {parseFloat(invoice.balance || 0) > 0 && parseFloat(invoice.balance) < parseFloat(invoice.amount) && (
+                          <div className="text-sm text-red-500 dark:text-red-400">
+                            Due: ${formatCurrency(invoice.balance)}
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900 dark:text-white">
@@ -227,6 +232,14 @@ export default function InvoicesPage() {
                         >
                           View
                         </Link>
+                        {isInvoicePayable(invoice) && (
+                          <Link 
+                            href={`/invoices/pay/${invoice.id}`}
+                            className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-4"
+                          >
+                            Pay
+                          </Link>
+                        )}
                         <Link 
                           href={`/invoices/${invoice.id}/edit`}
                           className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
