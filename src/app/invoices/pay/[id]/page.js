@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { use } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -13,6 +14,11 @@ const stripePromise = loadStripe('sk_test_51QvlDsFQtSIYgirFtAOC94OGJ0ampvGcYyOjO
 
 export default function PayInvoicePage({ params }) {
   const router = useRouter();
+  
+  // Unwrap the params using React.use()
+  const unwrappedParams = use(params);
+  const id = unwrappedParams.id;
+  
   const [invoice, setInvoice] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,7 +33,7 @@ export default function PayInvoicePage({ params }) {
   useEffect(() => {
     const fetchInvoice = async () => {
       try {
-        const response = await invoicesApi.getInvoice(params.id);
+        const response = await invoicesApi.getInvoice(id);
         setInvoice(response.data);
       } catch (err) {
         setError('Could not load invoice. Please try again.');
@@ -37,7 +43,7 @@ export default function PayInvoicePage({ params }) {
     };
 
     fetchInvoice();
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,7 +61,7 @@ export default function PayInvoicePage({ params }) {
       });
       
       // Redirect to success page
-      router.push(`/invoices/pay/${params.id}/success`);
+      router.push(`/invoices/pay/${id}/success`);
     } catch (err) {
       setError('Payment failed. Please check your details and try again.');
       setIsProcessing(false);
