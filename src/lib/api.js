@@ -1,10 +1,12 @@
-// API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_INVOICE_NINJA_API_URL || 'https://billing.cyberitex.com/api/v1';
-const API_TOKEN = process.env.INVOICE_NINJA_API_TOKEN;
+'use client';
 
+// API configuration for client components
+const API_BASE_URL = process.env.NEXT_PUBLIC_INVOICE_NINJA_API_URL || 'https://billing.cyberitex.com/api/v1';
+const API_TOKEN = process.env.NEXT_PUBLIC_INVOICE_NINJA_API_TOKEN;
 
 /**
  * Base API client for making requests to the InvoiceNinja API
+ * This version is for client components only
  */
 class ApiClient {
   constructor() {
@@ -15,7 +17,6 @@ class ApiClient {
    * Get authentication headers for API requests
    */
   getHeaders() {
-    console.log("API_TOKEN", API_TOKEN);
     return {
       'Content-Type': 'application/json',
       'X-API-TOKEN': API_TOKEN,
@@ -36,6 +37,7 @@ class ApiClient {
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers: this.getHeaders(),
+      cache: 'no-store', // Don't cache API responses
     });
     
     if (!response.ok) {
@@ -53,6 +55,7 @@ class ApiClient {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+      cache: 'no-store',
     });
     
     if (!response.ok) {
@@ -70,6 +73,7 @@ class ApiClient {
       method: 'PUT',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+      cache: 'no-store',
     });
     
     if (!response.ok) {
@@ -86,6 +90,7 @@ class ApiClient {
     const response = await fetch(`${this.baseUrl}/${endpoint}`, {
       method: 'DELETE',
       headers: this.getHeaders(),
+      cache: 'no-store',
     });
     
     if (!response.ok) {
@@ -114,9 +119,10 @@ class ApiClient {
   }
 }
 
-// Create API services for different entities
+// Create API instance for client components
 const apiClient = new ApiClient();
 
+// Create API services for different entities
 export const clientsApi = {
   // Get all clients
   getClients: (params = {}) => apiClient.get('clients', params),
@@ -212,6 +218,12 @@ export const paymentsApi = {
   processBraintreePayment: (invoiceId, data) => 
     apiClient.post(`invoices/${invoiceId}/payment/braintree`, data),
 };
+
+// Simplified API for client components (matches existing imports)
+export const clients = clientsApi;
+export const products = productsApi;
+export const invoices = invoicesApi;
+export const payments = paymentsApi;
 
 // Export the API client for direct use if needed
 export default apiClient;
