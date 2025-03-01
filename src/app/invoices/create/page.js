@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { invoices, clients, products } from '@/lib/api';
+import { invoicesApi, clientsApi, productsApi } from '@/lib/api';
 
 export default function NewInvoice() {
   const router = useRouter();
@@ -28,8 +28,8 @@ export default function NewInvoice() {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const clientsData = await clients.getAll();
-        setClientOptions(clientsData);
+        const response = await clientsApi.getClients();
+        setClientOptions(response.data || []);
       } catch (err) {
         console.error('Failed to fetch clients:', err);
         setError('Failed to load clients. Please try again.');
@@ -43,8 +43,8 @@ export default function NewInvoice() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const productsData = await products.getAll();
-        setProductOptions(productsData);
+        const response = await productsApi.getProducts();
+        setProductOptions(response.data || []);
       } catch (err) {
         console.error('Failed to fetch products:', err);
         setError('Failed to load products. Please try again.');
@@ -151,7 +151,7 @@ export default function NewInvoice() {
         total
       };
 
-      await invoices.create(invoiceData);
+      await invoicesApi.createInvoice(invoiceData);
       router.push('/invoices');
       router.refresh(); // Refresh the page to show the latest data
     } catch (err) {
@@ -304,7 +304,7 @@ export default function NewInvoice() {
                         <option value="">Select a product</option>
                         {productOptions.map((product) => (
                           <option key={product.id} value={product.id}>
-                            {product.name}
+                            {product.name || product.product_key}
                           </option>
                         ))}
                       </select>
