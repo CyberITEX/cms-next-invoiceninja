@@ -57,7 +57,7 @@ export default function InvoicesPage() {
   };
 
   const getStatusBadgeClass = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'draft':
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
       case 'sent':
@@ -193,8 +193,14 @@ export default function InvoicesPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-white">{invoice.client.name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{invoice.client.email}</div>
+                        {invoice.client ? (
+                          <div>
+                            <div className="text-sm text-gray-900 dark:text-white">{invoice.client.name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{invoice.client.email}</div>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">No client data</div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900 dark:text-white">
@@ -202,8 +208,12 @@ export default function InvoicesPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-white">{new Date(invoice.date).toLocaleDateString()}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Due: {new Date(invoice.due_date).toLocaleDateString()}</div>
+                        <div className="text-sm text-gray-900 dark:text-white">
+                          {invoice.date ? new Date(invoice.date).toLocaleDateString() : 'No date'}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          Due: {invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'No due date'}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(invoice.status)}`}>
